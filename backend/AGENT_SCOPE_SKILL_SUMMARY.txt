@@ -1,0 +1,103 @@
+===============================================================================
+AgentScope Skill 使用总结
+===============================================================================
+
+一、什么是 Skill？
+------------------
+Agent Scope Skill 是一组可以动态加载的指令、脚本和资源，用于在
+特定任务中提升 agent 性能。
+
+二、基本结构
+--------------
+skill_name/
+├── SKILL.md          # 必需：技能说明文件（含 YAML Front Matter）
+└── ...               # 可选：辅助脚本、数据文件等
+
+三、SKILL.md 格式
+------------------
+---
+name: skill_name              # 必需：技能名称
+description: 简洁描述           # 必需：技能描述
+---
+
+# 使用指南
+
+详细的技能说明...
+
+四、核心 API
+--------------
+1. 注册 Skill:
+   toolkit.register_agent_skill("/path/to/skill/directory")
+
+2. 移除 Skill:
+   toolkit.remove_agent_skill("skill_name")
+
+3. 获取技能提示:
+   prompt = toolkit.get_agent_skill_prompt()
+
+五、在 Agent 中使用
+------------------
+from agentscope.agent import ReActAgent
+from agentscope.tool import Toolkit
+
+toolkit = Toolkit()
+
+# 注册 skills
+toolkit.register_agent_skill("skills/web_scraping")
+toolkit.register_agent_skill("skills/data_extraction")
+
+# 创建 agent（自动加载 skill prompt）
+agent = ReActAgent(
+    name="my_agent",
+    sys_prompt="你是一个智能助手",
+    model=model,
+    toolkit=toolkit,  # 包含已注册的 skills
+)
+
+# Agent 自动在 system prompt 中添加所有 skills！
+# 最终 prompt = sys_prompt + "\n\n" + agent_skill_prompt
+
+六、示例：网页抓取 Skill
+----------------------------
+SKILL.md:
+---
+name: web_scraping
+description: 专业的网页抓取技能
+---
+
+# 使用指南
+
+1. 使用 Playwright MCP 工具访问网页
+2. 等待页面加载
+3. 使用 CSS 选择器提取数据
+4. 处理分页和动态内容
+
+七、关键特点
+--------------
+✓ 自动加载：Agent 创建时自动包含所有已注册 skills
+✓ 按需使用：Agent 根据任务需求自动判断使用哪些 skills
+✓ 模块化：每个 skill 独立，易于维护
+✓ 灵活扩展：可以动态添加/移除 skills
+
+八、最佳实践
+--------------
+1. 单一职责：每个 skill 专注一个功能
+2. 描述清晰：description 要简洁明确
+3. 详细说明：SKILL.md 中包含具体使用方法
+4. 按需注册：只注册任务需要的 skills
+5. 目录组织：将 skills 放在专门的目录中
+
+九、当前项目中的 Skills
+------------------------
+✓ web_scraping     - 专业的网页抓取技能
+✓ data_extraction  - 数据提取和结构化技能
+
+十、相关文件
+-------------
+ skills/web_scraping/SKILL.md           - 网页抓取技能说明
+ skills/data_extraction/SKILL.md         - 数据提取技能说明
+ src/com/trs/agent/scrapy_agent.py   - 使用示例
+ AGENT_SCOPE_SKILL_GUIDE.md              - 详细使用指南
+ AGENT_SCOPE_SKILL_QUICKREF.md          - 快速参考卡片
+
+===============================================================================

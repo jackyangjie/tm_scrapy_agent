@@ -1,0 +1,73 @@
+{
+  // ===================== 核心：Python 解释器与环境配置（必配）=====================
+  // 指定项目虚拟环境解释器（优先级最高，覆盖全局选择）
+  "python.pythonPath": "${workspaceFolder}/venv/bin/python",
+  // 默认解释器路径，和上面保持一致
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+  // 终端自动激活虚拟环境（核心，避免终端用系统Python）
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  // 禁止VS Code自动搜索系统Python，仅用指定的虚拟环境
+  "python.terminal.disableWorkspaceFolderCheck": true,
+
+  // ===================== 代码格式化配置（规范代码风格，可选但推荐）=====================
+  // 选择格式化工具（推荐 black，简洁无冗余；也可选 yapf/autopep8）
+  "python.formatting.provider": "black",
+  // 保存文件时自动格式化代码
+  "editor.formatOnSave": true,
+  // 格式化时忽略行长度限制（按需开启）
+  "python.formatting.blackArgs": ["--line-length", "120"],
+  // 开启代码折叠（方便阅读大文件）
+  "editor.foldingEnabled": true,
+
+  // ===================== 语法检查与类型提示（提前发现错误，必配）=====================
+  // 语法检查工具（推荐 pylint，功能最全；也可选 flake8）
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  // 保存文件时自动进行语法检查
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.fixAll.pylint": "explicit"
+  },
+  // 忽略pylint的一些非关键警告（按需添加，如C0114=缺少文件注释，W0611=未使用的导入）
+  "python.linting.pylintArgs": [
+    "--disable=C0114,C0115,C0116,W0611,W0621"
+  ],
+  // 开启Python类型提示（TS风格，提升代码可读性）
+  "python.analysis.typeCheckingMode": "basic",
+  // 关闭无关的导入警告（解决虚拟环境包识别问题）
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none"
+  },
+
+  // ===================== 编辑器基础个性化配置（提升开发效率）=====================
+  // 显示行号（必开）
+  "editor.lineNumbers": "on",
+  // 代码行间距（按需调整，默认1.0）
+  "editor.lineHeight": 1.2,
+  // 开启代码自动补全（VS Code默认开启，强化一下）
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  // 保存时自动去除行尾空格
+  "editor.trimTrailingWhitespace": true,
+  // 保存时自动添加文件末尾换行
+  "editor.insertFinalNewline": true,
+  // 缩进为4个空格（Python规范）
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  // 开启括号匹配高亮
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+
+  // ===================== 终端与运行配置（和调试联动）=====================
+  // 终端启动时进入项目根目录
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  // Mac/Linux 默认终端用 zsh（你的环境是zsh，适配）
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  // 禁止终端自动激活虚拟环境的冗余提示
+  "python.terminal.showActivationCommands": false
+}

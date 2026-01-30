@@ -1,0 +1,23 @@
+collection:
+  interval: 3600
+  retry_times: 3
+  concurrency: 5
+  timeout: 30
+
+logging:
+  level: INFO
+  file: logs/collection.log
+  max_size: 10485760
+  backup_count: 5
+
+storage:
+  path: data/output
+  encoding: utf-8
+
+sources:
+  priority:
+    - search_engine
+    - news_site
+    - social_media
+    - data_source_url
+    - backup_source_url

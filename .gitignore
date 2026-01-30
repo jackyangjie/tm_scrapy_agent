@@ -1,0 +1,23 @@
+venv/
+node_modules/
+# 以下是Python项目通用忽略规则（推荐添加，可选）
+__pycache__/  # Python编译后的缓存文件
+*.py[cod]     # 单个编译后的py文件
+*$py.class
+*.so
+.Python
+env/          # 其他常见虚拟环境目录（比如用virtualenv创建的env）
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
