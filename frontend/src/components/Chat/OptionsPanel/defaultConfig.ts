@@ -34,7 +34,7 @@ export default {
     ],
   },
   api: {
-    baseURL: "http://localhost:8080",
+    baseURL: "http://192.168.0.38:8080/process",
     token: TOKEN,
   },
 };

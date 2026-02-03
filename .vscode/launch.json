@@ -5,13 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: main",
+            "name": "Python",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/backend/main.py",
             "console": "integratedTerminal",
-            "python":"${workspaceFolder}/backend/venv/bin/python",
-            "args": ["--port", "5000"]
+            "pwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/venv/bin/python",
+            "args": [
+                "--port",
+                "5000"
+            ]
         }
     ]
 }

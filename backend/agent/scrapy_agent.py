@@ -24,12 +24,17 @@ from agentscope.agent import ReActAgent
 from agentscope.message import Msg
 from agentscope.model import OpenAIChatModel
 from agentscope.plan import PlanNotebook
+from .bounded_memory import BoundedMemory
 from agentscope.pipeline import stream_printing_messages
 from agentscope_runtime.engine.services.agent_state import (
     InMemoryStateService,
 )
 
-SKILLS_DIR = os.path.join(os.path.dirname(__file__), "skills")
+from agentscope_runtime.engine.services.session_history.session_history_service import (  # pylint: disable=line-too-long
+    InMemorySessionHistoryService,  # pylint: disable=line-too-long
+)
+
+SKILLS_DIR = os.path.join(os.path.dirname(__file__), "../skills")
 UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "../uploads")
 
 
@@ -181,46 +186,20 @@ agent_app = AgentApp(
 async def init_func(self):
     logging.info("初始化 scrapy_agent 应用...")
     self.state_service = InMemoryStateService()
+    self.session_service = InMemorySessionHistoryService()
+
     await self.state_service.start()
+    await self.session_service.start()
 
+    # 初始化信号量，控制 MCP 客户端并发访问
+    self.mcp_semaphore = asyncio.Semaphore(1)
+
+    # 初始化 MCP 客户端（应用启动时一次性创建）
     self.mcp_clients: dict[str, StdIOStatefulClient] = {}
+    await _init_mcp_clients(self.mcp_clients)
 
-    toolkit = Toolkit()
-    for name, config in mcp_servers_config.items():
-        logging.info(f"初始化MCP服务器: {name}")
-        # 复用已连接的客户端（如果存在）
-        if name in self.mcp_clients and self.mcp_clients[name].is_connected:
-            mcp_client = self.mcp_clients[name]
-            logging.info(f"使用已连接的 MCP 客户端: {name}")
-        else:
-            mcp_client = StdIOStatefulClient(name, **config)
-            await mcp_client.connect()
-            self.mcp_clients[name] = mcp_client
-        await toolkit.register_mcp_client(mcp_client)
-        logging.info(f"mcp 工具 {name} 注册成功 !")
-
-    for skill_name in ["web_scraping", "data_extraction"]:
-        skill_path = os.path.join(SKILLS_DIR, skill_name)
-        if os.path.exists(skill_path):
-            toolkit.register_agent_skill(skill_path)
-            logging.info(f"Skill {skill_name} 注册成功 !")
-
-    notebook = PlanNotebook()
-    model_name = os.getenv("model_name")
-    logging.info(f"创建 ReActAgent - Model: {model_name}")
-    self.agent = ReActAgent(
-        name="scrapy_agent",
-        sys_prompt=scrapy_agent_sys_prompt,
-        model=OpenAIChatModel(
-            model_name=model_name,
-            api_key=os.getenv("api_key"),
-            client_kwargs={"base_url": os.getenv("base_url")},
-        ),
-        max_iters=20,
-        toolkit=toolkit,
-        plan_notebook=notebook,
-        formatter=OpenAIChatFormatter(),
-    )
+    # 初始化全局 Agent（复用以减少开销）
+    await _init_agent(self)
 
     logging.info("初始化完成")
 
@@ -234,7 +213,71 @@ async def shutdown_func(self):
             logging.info(f"关闭 MCP 客户端: {name}")
             await client.close()
     self.mcp_clients.clear()
+    await self.session_service.stop()
+    self.agent = None
     logging.info("应用已关闭")
+
+
+async def _init_agent(app_instance) -> None:
+    """Initialize global ReActAgent instance."""
+    toolkit = Toolkit()
+
+    async with app_instance.mcp_semaphore:
+        for name, client in app_instance.mcp_clients.items():
+            logging.info(f"注册 MCP 客户端: {name}")
+            try:
+                await toolkit.register_mcp_client(client)
+                logging.info(f"MCP 工具 {name} 注册成功")
+            except Exception as e:
+                logging.warning(f"MCP 客户端 {name} 注册失败: {e}")
+
+    for skill_name in os.listdir(SKILLS_DIR):
+        skill_path = os.path.join(SKILLS_DIR, skill_name)
+        if os.path.isdir(skill_path) and os.path.exists(
+            os.path.join(skill_path, "SKILL.md")
+        ):
+            toolkit.register_agent_skill(skill_path)
+            logging.info(f"Skill {skill_name} 注册成功 !")
+
+    notebook = PlanNotebook()
+    model_name = os.getenv("model_name")
+    logging.info(f"创建全局 ReActAgent - Model: {model_name}")
+
+    max_tokens = int(os.getenv("MAX_CONTEXT_TOKENS", "150000"))
+    memory = BoundedMemory(
+        max_tokens=max_tokens, reserve_ratio=0.6, max_single_message_tokens=50000
+    )
+    logging.info(
+        f"初始化 BoundedMemory - Max: {max_tokens}, Effective: {int(max_tokens * 0.7)}"
+    )
+
+    app_instance.agent = ReActAgent(
+        name="scrapy_agent",
+        sys_prompt=scrapy_agent_sys_prompt,
+        model=OpenAIChatModel(
+            model_name=model_name,
+            api_key=os.getenv("api_key"),
+            client_kwargs={"base_url": os.getenv("base_url")},
+        ),
+        max_iters=90,
+        toolkit=toolkit,
+        memory=memory,
+        plan_notebook=notebook,
+        formatter=OpenAIChatFormatter(),
+    )
+
+
+async def _init_mcp_clients(mcp_clients_dict: dict) -> None:
+    """Initialize all MCP clients at application startup."""
+    for name, config in mcp_servers_config.items():
+        logging.info(f"初始化 MCP 服务器: {name}")
+        try:
+            client = StdIOStatefulClient(name, **config)
+            await client.connect()
+            mcp_clients_dict[name] = client
+            logging.info(f"MCP 客户端 {name} 连接成功")
+        except Exception as e:
+            logging.error(f"MCP 客户端 {name} 连接失败: {e}", exc_info=True)
 
 
 async def _load_agent_state(self, session_id: str, user_id: str) -> bool:
@@ -356,10 +399,6 @@ def _process_messages(msgs, session_id: str):
             processed_msgs.append(msg)
         return processed_msgs
     return msgs
-
-
-def sync_handler(request: AgentRequest):
-    yield {"status": "ok", "payload": request}
 
 
 def save_file_from_binary(file_data: bytes, filename: str) -> dict:
@@ -494,35 +533,6 @@ async def upload_handler(body: UploadRequest):
     except Exception as e:
         logging.error(f"文件上传失败（未知错误）: {e}", exc_info=True)
         yield {"error": "Internal server error", "status": 500}
-
-
-@agent_app.endpoint("/async")
-async def async_handler(request: AgentRequest):
-    yield {"status": "ok", "payload": request}
-
-
-@agent_app.endpoint("/stream_async")
-async def stream_async_handler(request: AgentRequest):
-    for i in range(5):
-        yield f"async chunk {i}, with request payload {request}\n"
-
-
-@agent_app.endpoint("/stream_sync")
-def stream_sync_handler(request: AgentRequest):
-    for i in range(5):
-        yield f"sync chunk {i}, with request payload {request}\n"
-
-
-@agent_app.task("/task", queue="celery1")
-def task_handler(request: AgentRequest):
-    time.sleep(30)
-    yield {"status": "ok", "payload": request}
-
-
-@agent_app.task("/atask")
-async def atask_handler(request: AgentRequest):
-    await asyncio.sleep(15)
-    yield {"status": "ok", "payload": request}
 
 
 @agent_app.query(framework="agentscope")

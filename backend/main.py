@@ -39,7 +39,7 @@ async def main():
 
     # Create deployment manager
     deploy_manager = LocalDeployManager(
-        host="0.0.0.0",
+        host="192.168.0.38",
         port=8080,
     )
 
