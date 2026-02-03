@@ -115,10 +115,10 @@ class BoundedMemory(MemoryBase):
         from agentscope.message import Msg
 
         truncated_msg = Msg(
-            role=msg.role,
+            name=msg.name,
             content=new_content,
-            name=getattr(msg, "name", None),
-            url=getattr(msg, "url", None),
+            role=msg.role,
+            metadata=getattr(msg, "metadata", None),
         )
 
         logging.warning(
