@@ -26,21 +26,32 @@ scrapy_agent_sys_prompt="""你是一个智能采集助手，可以根据用户�
 
 # MCP 服务器配置
 mcp_servers_config = {
-        "ddg-search": {
-            "command": "uvx",
-            "args": ["duckduckgo-mcp-server"],
-            "env":{
-                "https_proxy": "http://127.0.0.1:5081",
-                "http_proxy": "http://127.0.0.1:5081"
+        # "ddg-search": {
+        #     "command": "uvx",
+        #     "args": ["duckduckgo-mcp-server"],
+        #     "env":{
+        #         "https_proxy": "http://127.0.0.1:5081",
+        #         "http_proxy": "http://127.0.0.1:5081"
+        #     }
+        # },
+        # "playwright": {
+        #     "command": "npx",
+        #     "args": ["@playwright/mcp@latest"],
+        #     "env":{
+        #         "https_proxy": "http://127.0.0.1:5081",
+        #         "http_proxy": "http://127.0.0.1:5081"
+        #     }
+        # }
+
+
+        "minimax-coding-plan": {
+            "command": "uvx" ,
+            "args": ["minimax-coding-plan-mcp", "-y"],
+            "env": {
+                "MINIMAX_API_KEY": "sk-cp-R8tQCex8PrScJF87RNAwK61AhDBMcCWc2OXNiaSUCxAcT7qFGeWEnaHr5IiIYD-zCNK9ANXRQtrPQl_cQEKcALA3__yJ3fjqi63nwzTfJn1_-qmSeAp2kV0",
+                "MINIMAX_API_HOST": "https://api.minimaxi.com"
             }
-        },
-        "playwright": {
-            "command": "npx",
-            "args": ["@playwright/mcp@latest"],
-            "env":{
-                "https_proxy": "http://127.0.0.1:5081",
-                "http_proxy": "http://127.0.0.1:5081"
-            }
+
         }
     }
 

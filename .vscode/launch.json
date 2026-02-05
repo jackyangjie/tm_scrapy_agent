@@ -16,6 +16,33 @@
                 "--port",
                 "5000"
             ]
+        },
+        {
+            "name": "Node调试@agentscope-ai（Vite进程）",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/frontend", // 你的前端项目根目录，保持不变
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script",
+                "dev"
+            ],
+            "console": "integratedTerminal",
+            "sourceMaps": true, // 强制开启 Source Map（依赖编译后代码也能映射）
+            "outFiles": [ // 告诉调试器：依赖的编译代码路径，精准定位
+                "${workspaceFolder}/frontend/node_modules/**/*.js",
+                "${workspaceFolder}/frontend/**/*.js"
+            ],
+            "resolveSourceMapLocations": [ // 关键：让调试器识别依赖的 Source Map
+                "${workspaceFolder}/frontend/**",
+                "!**/node_modules/**/node_modules/**"
+            ],
+            "skipFiles": [ // 修复后的反向排除规则（无语法错误）
+                "<node_internals>/**",
+                "**/node_modules/**",
+                "!**/node_modules/@agentscope-ai/**"
+            ],
+            "stopOnEntry": false
         }
     ]
 }

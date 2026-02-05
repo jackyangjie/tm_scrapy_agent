@@ -1,3 +1,5 @@
+const API_BASE_URL = "http://192.168.0.38:8080";
+
 export default {
   theme: {
     colorPrimary: '#615CED',
@@ -11,6 +13,7 @@ export default {
 
   sender: {
     attachments: true,
+
     maxLength: 10000,
     disclaimer:
       'AI can also make mistakes, so please check carefully and use it with caution',
@@ -34,7 +37,7 @@ export default {
     ],
   },
   api: {
-    baseURL: "http://192.168.0.38:8080/process",
+    baseURL: API_BASE_URL + "/process",
     token: TOKEN,
   },
 };

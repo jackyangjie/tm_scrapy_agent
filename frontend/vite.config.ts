@@ -6,6 +6,7 @@ export default defineConfig({
     BASE_URL: JSON.stringify(process.env.BASE_URL || ''),
     TOKEN: JSON.stringify(process.env.TOKEN || ''),
     MOBILE: false,
+    sourcemap: true,
   },
   plugins: [react()],
 })
