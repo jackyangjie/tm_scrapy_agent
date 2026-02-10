@@ -11,6 +11,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+import agentscope
 from agentscope_runtime.engine.schemas.agent_schemas import (
     AgentRequest,
     Message,
@@ -21,7 +22,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from agent.scrapy_agent import agent_app
+from agent.main_agent import agent_app
 
 
 from agentscope_runtime.engine.deployers.local_deployer import (
@@ -57,5 +58,6 @@ async def main():
 
 
 if __name__ == "__main__":
+    # agentscope.init(name="scrapy_agent",project="scrapy_agent",studio_url="http://localhost:3000")
     asyncio.run(main())
     input("Press Enter to stop the server...")

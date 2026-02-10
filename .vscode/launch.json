@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/backend/main.py",
             "console": "integratedTerminal",
-            "pwd": "${workspaceFolder}/backend",
+            "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/venv/bin/python",
             "args": [
                 "--port",

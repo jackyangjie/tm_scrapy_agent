@@ -21,3 +21,14 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+backend/__pycache__/config.cpython-312.pyc
+backend/__pycache__/config.cpython-312.pyc
+backend/agent/__pycache__/__init__.cpython-312.pyc
+backend/agent/__pycache__/bounded_memory.cpython-312.pyc
+backend/agent/__pycache__/scrapy_agent.cpython-312.pyc
+backend/__pycache__/config.cpython-312.pyc
+backend/agent/__pycache__/__init__.cpython-312.pyc
+backend/agent/__pycache__/bounded_memory.cpython-312.pyc
+backend/agent/__pycache__/scrapy_agent.cpython-312.pyc
+backend/__pycache__/config.cpython-312.pyc
+backend/agent/__pycache__/__init__.cpython-312.pyc

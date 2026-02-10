@@ -18,29 +18,29 @@ from agentscope.formatter import OpenAIChatFormatter
 from agentscope.tool import Toolkit, ToolResponse
 from agentscope.mcp import StdIOStatefulClient
 
-from config import mcp_servers_config, scrapy_agent_sys_prompt
+from config import mcp_servers_config, simple_agent_sys_prompt
 
 
 SKILLS_DIR = os.path.join(os.path.dirname(__file__), "../skills")
 
 
-async def scrapy_agent_fucntion(
-    custom_prompt: str, name: str = "scrapy_agent", enable_search: bool = True
+async def simple_agent_fucntion(
+    custom_prompt: str, name: str = "simple_agent", enable_search: bool = True
 ) -> ToolResponse:
     """
-    数据采集：根据用户自定义提示，使用scrapy_agent进行数据采集，并返回结果。
-    Args:
-        custom_prompt (str): The custom prompt to use for the agent.
-        name (str, optional): The name of the agent. Defaults to "scrapy_agent".
-        enable_search (bool, optional): Whether to enable search tools. Defaults to True.
-    Returns:
-        ToolResponse: The response from the agent.
-    Raises:
+    Create a simple agent for basic Q&A functionality.
 
+    Args:
+        custom_prompt (str): Custom prompt for the agent.
+        name (str, optional): Name of the agent. Defaults to "simple_agent".
+        enable_search (bool, optional): Whether to enable search tools. Defaults to True.
+
+    Returns:
+        ToolResponse: Response from the agent.
     """
     # Initialize model
     model_name = os.getenv("model_name")
-    logging.info(f"Creating scrapyAgent '{name}' with model: {model_name}")
+    logging.info(f"Creating SimpleAgent '{name}' with model: {model_name}")
 
     chat_model = OpenAIChatModel(
         model_name=model_name,
@@ -69,15 +69,15 @@ async def scrapy_agent_fucntion(
 
     try:
         # Create agent
-        scrapy_agent = ReActAgent(
+        simple_agent = ReActAgent(
             name="scrapy_agent",
-            sys_prompt=scrapy_agent_sys_prompt,
+            sys_prompt=simple_agent_sys_prompt,
             model=chat_model,
             max_iters=90,
             toolkit=toolkit,
             formatter=OpenAIChatFormatter(),
         )
-        res = await scrapy_agent(Msg("user", custom_prompt, "user"))
+        res = await simple_agent(Msg("user", custom_prompt, "user"))
 
         logging.info(f"SimpleAgent '{name}' created successfully")
         return ToolResponse(content=res.get_content_blocks("text"))
